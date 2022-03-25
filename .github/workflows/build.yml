@@ -1,0 +1,69 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - develop
+    paths:
+    - src/*/**
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+
+  calculate-version:
+    name: Calculate Version
+    runs-on: ubuntu-latest
+    outputs:
+      semVer: ${{ steps.gitversion.outputs.semVer }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: gittools/actions/gitversion/setup@v0.9.13
+        name: Install GitVersion  
+        with:
+          versionSpec: '5.x'
+
+      - uses: gittools/actions/gitversion/execute@v0.9.13
+        name: Determine Version
+        id: gitversion
+          
+  build:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs: calculate-version
+    env:
+      SEMVER: ${{ needs.calculate-version.outputs.semVer }}
+
+    steps:
+
+    # checkout the repo
+    - name: 'Checkout Github Action'
+      uses: actions/checkout@v2
+
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Dotnet Restore
+      run: dotnet restore ./src/project
+
+    # the project we build here contains a csproj file that is configured to set the version on the assembly using the SEMVER environment variable
+    - name: Dotnet Build
+      run: dotnet build --configuration Release ./src/project
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.2
+      with:
+        # Artifact name
+        name: ProjectDownloadableArtifact${{ needs.calculate-version.outputs.semVer }} #.zip will be added automatically
+        path: ./src/project/bin/Release/net6.0/*.*
