@@ -67,3 +67,6 @@ jobs:
         # Artifact name
         name: ProjectDownloadableArtifact${{ needs.calculate-version.outputs.semVer }} #.zip will be added automatically
         path: ./src/project/bin/Release/net6.0/*.*
+    
+    - name: Demo the program
+      run: dotnet ./src/project/bin/Release/net6.0/project.dll
