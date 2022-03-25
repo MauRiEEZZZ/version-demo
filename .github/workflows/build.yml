@@ -36,6 +36,7 @@ jobs:
         id: gitversion
           
   build:
+    name: Build the application
     permissions:
       contents: read
     runs-on: ubuntu-latest
