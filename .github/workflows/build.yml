@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: calculate-version
     env:
-      SEMVER: ${{ needs.calculate-version.outputs.semVer }}
+      SEMVER: ${{ needs.calculate-version.outputs.majorMinorPatch }}
 
     steps:
 
