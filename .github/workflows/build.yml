@@ -45,7 +45,6 @@ jobs:
 
     steps:
 
-    # checkout the repo
     - name: 'Checkout Github Action'
       uses: actions/checkout@v2
 
@@ -67,6 +66,32 @@ jobs:
         # Artifact name
         name: ProjectDownloadableArtifact${{ needs.calculate-version.outputs.semVer }} #.zip will be added automatically
         path: ./src/project/bin/Release/net6.0/*.*
+
+  execute:
+    name: Execute the application
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs: 
+      - build
+      - calculate-version
+
+    steps:
+
+    - name: 'Checkout Github Action'
+      uses: actions/checkout@v2
+
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: ProjectDownloadableArtifact${{ needs.calculate-version.outputs.semVer }}
+        
+    - name: Display structure of downloaded files
+      run: ls -R
     
     - name: Demo the program
-      run: dotnet ./src/project/bin/Release/net6.0/project.dll
+      run: dotnet project.dll
